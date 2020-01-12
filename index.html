@@ -1,0 +1,119 @@
+<html>
+<head>
+    <script
+            src="https://code.jquery.com/jquery-3.3.1.min.js"
+            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+            crossorigin="anonymous"></script>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+</head>
+<style>
+    body {
+        background-repeat: no-repeat;
+        background-image: url(img.jpg);
+        background-size: 100% auto;
+    }
+
+
+</style>
+<body>
+<div class="container">
+    <div class="row justify-content-start" style="padding-top: 10%">
+        <div class="col-md-6">
+                <table class="table table-hover table-bordered" id="table" style="background-color:#dbdbdb">
+
+
+
+<script>
+    let table= document.getElementById('table');
+
+
+    let f=function(data,status){
+        let html="     <thead class=\"thead-dark\">       " +
+            " <tr>\n" +
+            "                <th>Item id</th>\n" +
+            "                <th>Item name</th>\n" +
+            "                <th>Delete</th>\n" +
+            "            </tr>\n"+
+            "</thead>";
+        data.forEach(function(el){
+        html += `<tr><td > ${el.id}</td><td  onclick="update(${el.id})">${el.itemName}</td><td onclick="del(${el.id})"">x</td></tr>`
+            table.innerHTML = html;
+            return html
+        })
+    }
+
+    let update=async function(itemId){
+        let promise = new Promise ((resolve, reject) =>{
+            let itemName=prompt('Enter new item');
+            let httpRequest=new XMLHttpRequest();
+            httpRequest.open("PUT","items.php")
+            httpRequest.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
+            httpRequest.send(JSON.stringify({'id':itemId,'itemName':itemName}))
+            httpRequest.onload=function(){
+                if(this.status==200){
+                    console.log('updated item with id №'+ itemId)
+                }else{
+                    reject('Error while updating item №'+ itemId)
+                }
+            }
+            $.getJSON('items.php',f)
+        })
+        let result=await promise
+        alert(result)
+    }
+
+    let del=function(itemId){
+        $.ajax({
+            method: "DELETE",
+             url:'items/'+itemId,
+            success: () => {
+                console.log("deleted item №" + itemId);
+                console.log(this.status)
+                $.get('items', f);
+            },
+            error: () => {
+                console.log(this.status)
+                alert("Error deleting item №" + itemId);
+            }
+        });
+    };
+
+    let insert=function(){
+        let itemName=document.getElementById('form').value;
+        let promise=new Promise(function(resolve,reject){
+          let httpRequest=new XMLHttpRequest();
+            httpRequest.open("POST","items.php");
+            httpRequest.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
+            httpRequest.send(JSON.stringify({'itemName': itemName}));
+            httpRequest.onload=function(){
+                if (this.status===201){
+                    console.log('Inserted item №'+ itemName)
+                }else{reject("Error while adding item №"+itemName)}
+            }
+            $.getJSON('items.php',f);
+        })
+        promise.then(
+
+            resolve => alert(resolve),
+
+            reject => alert(reject)
+
+        );
+    }
+
+    $.getJSON('items.php',f);
+
+</script>
+                </table>
+            <input class="form-control mr-sm-4" id="form" type="text" placeholder="Add new item">
+
+            <button class="btn btn-secondary my-2 my-sm-0" type="submit" onclick="insert()">Insert</button>
+        </div>
+    </div>
+</div>
+
+
+
+</body>
+</html>
